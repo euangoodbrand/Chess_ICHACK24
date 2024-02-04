@@ -27,6 +27,9 @@ export const pieceToName = (piece: PieceSymbol): string => {
   return '_';
 }
 
+const handleClick = () => {
+  console.log(2);}
+
 const pieceToFilename = (piece: PieceSymbol, is_white: boolean): string => {
   const path = `${import.meta.env.BASE_URL}pieces/${PIECES_HAVE_SHADOW ? '' : 'no_'}shadow/${PIECES_RESOLUTION}/`;
   const fname =
@@ -34,6 +37,8 @@ const pieceToFilename = (piece: PieceSymbol, is_white: boolean): string => {
 ${pieceToName(piece)}_png_\
 ${PIECES_HAVE_SHADOW ? 'shadow_' : ''}\
 ${PIECES_RESOLUTION}.png`;
+
+
 
   return path + fname;
 };

@@ -13,6 +13,7 @@ import { LobbyContext } from '@/providers/LobbyProvider';
 import { Color, PieceSymbol, Square } from 'chess.js';
 import { pieceToFilename, pieceToName, pieceToString } from '@/game/piece';
 import FakeStockChart from './FakeStockChart'; // Adjust the path as necessary
+import Modal from 'react-modal'; // Assuming you're using react-modal
 
 
 const ChessContainer = styled.div<{ fullscreen: boolean }>`
@@ -112,22 +113,22 @@ const ChartContainer = styled.div`
 `;
 
 const stockOptions = [
-  { code: 'JNJ', label: 'Johnson & Johnson (JNJ) - Healthcare' },
-  { code: 'MSFT', label: 'Microsoft Corporation (MSFT) - Technology' },
-  { code: 'PG', label: 'Procter & Gamble Co. (PG) - Consumer Goods' },
-  { code: 'TSLA', label: 'Tesla Inc. (TSLA) - Automotive/Electric Vehicles' },
-  { code: 'JPM', label: 'JPMorgan Chase & Co. (JPM) - Financial Services' },
-  { code: 'KO', label: 'Coca-Cola Company (KO) - Beverages' },
-  { code: 'XOM', label: 'Exxon Mobil Corporation (XOM) - Energy' },
-  { code: 'AMZN', label: 'Amazon.com Inc. (AMZN) - E-commerce/Technology' },
-  { code: 'DIS', label: 'Walt Disney Co. (DIS) - Entertainment' },
-  { code: 'GOOGL', label: 'Alphabet Inc. (GOOGL) - Internet/Search Engine' },
-  { code: 'SQ', label: 'Square, Inc. (SQ) - Financial Technology (FinTech)' },
-  { code: 'ZM', label: 'Zoom Video Communications, Inc. (ZM) - Communication Technology' },
-  { code: 'MRNA', label: 'Moderna, Inc. (MRNA) - Biotechnology' },
-  { code: 'ETSY', label: 'Etsy, Inc. (ETSY) - E-commerce/Crafts' },
-  { code: 'PLTR', label: 'Palantir Technologies Inc. (PLTR) - Data Analytics' },
-  { code: 'LMND', label: 'Lemonade, Inc. (LMND) - Insurtech' },
+  { init: '-', code: 'JNJ', label: 'Johnson & Johnson (JNJ) - Healthcare' },
+  { init: '-', code: 'MSFT', label: 'Microsoft Corporation (MSFT) - Technology' },
+  { init: '-', code: 'PG', label: 'Procter & Gamble Co. (PG) - Consumer Goods' },
+  { init: '-', code: 'TSLA', label: 'Tesla Inc. (TSLA) - Automotive/Electric Vehicles' },
+  { init: '-', code: 'JPM', label: 'JPMorgan Chase & Co. (JPM) - Financial Services' },
+  { init: '-', code: 'KO', label: 'Coca-Cola Company (KO) - Beverages' },
+  { init: '-', code: 'XOM', label: 'Exxon Mobil Corporation (XOM) - Energy' },
+  { init: '-', code: 'AMZN', label: 'Amazon.com Inc. (AMZN) - E-commerce/Technology' },
+  { init: '-', code: 'DIS', label: 'Walt Disney Co. (DIS) - Entertainment' },
+  { init: '-', code: 'GOOGL', label: 'Alphabet Inc. (GOOGL) - Internet/Search Engine' },
+  { init: '-', code: 'SQ', label: 'Square, Inc. (SQ) - Financial Technology (FinTech)' },
+  { init: '-', code: 'ZM', label: 'Zoom Video Communications, Inc. (ZM) - Communication Technology' },
+  { init: '-', code: 'MRNA', label: 'Moderna, Inc. (MRNA) - Biotechnology' },
+  { init: '-', code: 'ETSY', label: 'Etsy, Inc. (ETSY) - E-commerce/Crafts' },
+  { init: '-', code: 'PLTR', label: 'Palantir Technologies Inc. (PLTR) - Data Analytics' },
+  { init: '-', code: 'LMND', label: 'Lemonade, Inc. (LMND) - Insurtech' },
 ];
 
 
@@ -171,11 +172,24 @@ export const LeftSidebar = () => {
   // Sort pieces by the defined order
   const sortedWhitePieces = uniqueWhitePieces.sort((a, b) => pieceOrder[a.type] - pieceOrder[b.type]);
 
+  const [selectedOptions, setSelectedOptions] = useState({});
+
+  const handleSelectChange = (pieceIndex, selectedOption) => {
+    setSelectedOptions(prevOptions => ({
+      ...prevOptions,
+      [pieceIndex]: selectedOption
+    }));
+  };
+
   return (
       <Sidebar>
           {sortedWhitePieces.map((piece, index) => (
               <PieceContainer key={index}>
-                  <PieceImage src={pieceToFilename(piece.type, true)} alt={pieceToName(piece.type)} />
+                  <PieceImage 
+                  src={pieceToFilename(piece.type, true)} 
+                  alt={pieceToName(piece.type)} 
+                  onClick={() => console.log(selectedOptions[index])}
+                />
                   <Select>
                     {stockOptions.map(option => (
                       <option key={option.code} value={option.code}>{option.label}</option>
@@ -204,21 +218,56 @@ export const RightSidebar = () => {
   // Sort pieces by the defined order
   const sortedBlackPieces = uniqueBlackPieces.sort((a, b) => pieceOrder[a.type] - pieceOrder[b.type]);
 
+  // MODAL
+  const [selectedOptions, setSelectedOptions] = useState({});
+  const handleSelectChange = (pieceIndex, selectedOption) => {
+    setSelectedOptions(prevOptions => ({
+      ...prevOptions,
+      [pieceIndex]: selectedOption
+    }));
+  };
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentOption, setCurrentOption] = useState(null);
+
+  const handleImageClick = (option) => {
+    setCurrentOption(option);
+    setIsModalOpen(true);
+  };
+  
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
+  
   return (
-      <Sidebar>
-          {sortedBlackPieces.map((piece, index) => (
-              <PieceContainer key={index}>
-                  <PieceImage src={pieceToFilename(piece.type, false)} alt={pieceToName(piece.type)} />
-                  <Select>
-                    {stockOptions.map(option => (
-                      <option key={option.code} value={option.code}>{option.label}</option>
-                    ))}
-                  </Select>
-                  <span>Stock Value</span>
-                  <span>{piece.value.toFixed(2)}</span>
-              </PieceContainer>
-          ))}
-      </Sidebar>
+    <Sidebar>
+      {sortedBlackPieces.map((piece, index) => (
+        <PieceContainer key={index}>
+          <PieceImage 
+            src={pieceToFilename(piece.type, false)} 
+            alt={pieceToName(piece.type)} 
+            onClick={() => handleImageClick(selectedOptions[index])}
+          />
+          <Select onChange={(e) => handleSelectChange(index, e.target.value)}>
+            {stockOptions.map(option => (
+              <option key={option.code} value={option.code}>{option.label}</option>
+            ))}
+          </Select>
+          <span>Stock Value</span>
+          <span>{piece.value.toFixed(2)}</span>
+        </PieceContainer>
+      ))}
+      <Modal
+        isOpen={isModalOpen}
+        onRequestClose={closeModal}
+        contentLabel="My Modal"
+      >
+        <h2>Hello</h2>
+        <button onClick={closeModal}>close</button>
+        <div>I am a modal</div>
+        {currentOption && <div>Selected option: {currentOption}</div>}
+      </Modal>
+    </Sidebar>
   );
 };
 
